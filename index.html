@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Three.js Flamingo Exporter</title>
 
     <style>
         body {
             margin: 0;
-            padding: 0;
             overflow: hidden;
-            background-color: #1a1a1a;
+            background: #1a1a1a;
             font-family: sans-serif;
             color: white;
         }
@@ -20,10 +20,13 @@
             top: 20px;
             left: 20px;
             z-index: 10;
+
             background: rgba(0, 0, 0, 0.85);
             padding: 20px;
             border-radius: 8px;
+
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+
             width: 220px;
         }
 
@@ -35,11 +38,17 @@
             background: #ff8da1;
             border: none;
             color: black;
+
             padding: 12px 20px;
+
             font-weight: bold;
+
             border-radius: 4px;
+
             cursor: pointer;
+
             margin-top: 10px;
+
             width: 100%;
         }
 
@@ -47,89 +56,136 @@
             background: #ffb6c1;
         }
     </style>
+
+    <!--
+        Import map for modern Three.js ES modules.
+    -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
 </head>
 
 <body>
 
     <div id="ui-container">
         <h2>Flamingo Generator</h2>
+
         <p>Left-click + drag to rotate</p>
         <p>Scroll to zoom</p>
-        <button id="export-btn">Download .GLTF Model</button>
+
+        <button id="export-btn">
+            Download .GLTF Model
+        </button>
     </div>
 
-    <!-- Three.js -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
-    <!-- Three.js addons -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/exporters/GLTFExporter.js"></script>
+    <!--
+        IMPORTANT:
+        This must be type="module".
+    -->
+    <script type="module">
 
-    <script>
+        import * as THREE from "three";
 
-        // ------------------------------------------------------------
+        import { OrbitControls }
+            from "three/addons/controls/OrbitControls.js";
+
+        import { GLTFExporter }
+            from "three/addons/exporters/GLTFExporter.js";
+
+
+        // ============================================================
         // SCENE
-        // ------------------------------------------------------------
+        // ============================================================
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a1a);
+
+        scene.background =
+            new THREE.Color(0x1a1a1a);
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // CAMERA
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const camera = new THREE.PerspectiveCamera(
-            45,
-            window.innerWidth / window.innerHeight,
-            0.1,
-            100
+        const camera =
+            new THREE.PerspectiveCamera(
+                45,
+                window.innerWidth /
+                window.innerHeight,
+                0.1,
+                100
+            );
+
+        camera.position.set(
+            4,
+            2,
+            7
         );
 
-        camera.position.set(4, 2, 7);
 
-
-        // ------------------------------------------------------------
+        // ============================================================
         // RENDERER
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const renderer = new THREE.WebGLRenderer({
-            antialias: true
-        });
+        const renderer =
+            new THREE.WebGLRenderer({
+                antialias: true
+            });
 
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(
+            Math.min(
+                window.devicePixelRatio,
+                2
+            )
+        );
+
         renderer.setSize(
             window.innerWidth,
             window.innerHeight
         );
 
-        document.body.appendChild(renderer.domElement);
-
-
-        // ------------------------------------------------------------
-        // LIGHTING
-        // ------------------------------------------------------------
-
-        const ambientLight = new THREE.AmbientLight(
-            0xffffff,
-            0.7
+        document.body.appendChild(
+            renderer.domElement
         );
+
+
+        // ============================================================
+        // LIGHTING
+        // ============================================================
+
+        const ambientLight =
+            new THREE.AmbientLight(
+                0xffffff,
+                0.8
+            );
 
         scene.add(ambientLight);
 
 
-        const dirLight = new THREE.DirectionalLight(
-            0xffffff,
-            1.5
+        const directionalLight =
+            new THREE.DirectionalLight(
+                0xffffff,
+                1.5
+            );
+
+        directionalLight.position.set(
+            5,
+            10,
+            7
         );
 
-        dirLight.position.set(5, 10, 7);
-        scene.add(dirLight);
+        scene.add(directionalLight);
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // MATERIALS
-        // ------------------------------------------------------------
+        // ============================================================
 
         const pinkMaterial =
             new THREE.MeshStandardMaterial({
@@ -137,11 +193,13 @@
                 roughness: 0.6
             });
 
+
         const darkPinkMaterial =
             new THREE.MeshStandardMaterial({
                 color: 0xe75480,
                 roughness: 0.6
             });
+
 
         const orangeMaterial =
             new THREE.MeshStandardMaterial({
@@ -149,10 +207,12 @@
                 roughness: 0.5
             });
 
+
         const blackMaterial =
             new THREE.MeshStandardMaterial({
                 color: 0x222222
             });
+
 
         const legMaterial =
             new THREE.MeshStandardMaterial({
@@ -161,58 +221,76 @@
             });
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // FLAMINGO GROUP
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const flamingo = new THREE.Group();
+        const flamingo =
+            new THREE.Group();
 
         scene.add(flamingo);
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // BODY
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const bodyGeo =
-            new THREE.SphereGeometry(1, 32, 24);
+        const bodyGeometry =
+            new THREE.SphereGeometry(
+                1,
+                32,
+                24
+            );
 
         const body =
-            new THREE.Mesh(bodyGeo, pinkMaterial);
+            new THREE.Mesh(
+                bodyGeometry,
+                pinkMaterial
+            );
 
-        body.scale.set(1.5, 1, 0.8);
-        body.position.set(0, 0, 0);
+        body.scale.set(
+            1.5,
+            1,
+            0.8
+        );
 
         flamingo.add(body);
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // NECK
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const neckGeo =
+        const neckGeometry =
             new THREE.CylinderGeometry(
                 0.15,
-                0.2,
+                0.20,
                 1.8,
                 16
             );
 
         const neck =
-            new THREE.Mesh(neckGeo, pinkMaterial);
+            new THREE.Mesh(
+                neckGeometry,
+                pinkMaterial
+            );
 
-        neck.position.set(1.1, 1.15, 0);
+        neck.position.set(
+            1.1,
+            1.15,
+            0
+        );
 
         neck.rotation.z = -0.25;
 
         flamingo.add(neck);
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // HEAD
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const headGeo =
+        const headGeometry =
             new THREE.SphereGeometry(
                 0.32,
                 24,
@@ -220,7 +298,10 @@
             );
 
         const head =
-            new THREE.Mesh(headGeo, pinkMaterial);
+            new THREE.Mesh(
+                headGeometry,
+                pinkMaterial
+            );
 
         head.position.set(
             1.55,
@@ -231,20 +312,20 @@
         flamingo.add(head);
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // EYE
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const eyeGeo =
+        const eyeGeometry =
             new THREE.SphereGeometry(
                 0.055,
-                12,
-                12
+                16,
+                16
             );
 
         const eye =
             new THREE.Mesh(
-                eyeGeo,
+                eyeGeometry,
                 blackMaterial
             );
 
@@ -257,11 +338,11 @@
         flamingo.add(eye);
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // BEAK
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const beakGeo =
+        const beakGeometry =
             new THREE.ConeGeometry(
                 0.13,
                 0.55,
@@ -270,7 +351,7 @@
 
         const beak =
             new THREE.Mesh(
-                beakGeo,
+                beakGeometry,
                 orangeMaterial
             );
 
@@ -280,25 +361,26 @@
             0
         );
 
-        beak.rotation.z = -Math.PI / 2;
+        beak.rotation.z =
+            -Math.PI / 2;
 
         flamingo.add(beak);
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // BLACK BEAK TIP
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const beakTipGeo =
+        const beakTipGeometry =
             new THREE.ConeGeometry(
                 0.14,
-                0.2,
+                0.20,
                 12
             );
 
         const beakTip =
             new THREE.Mesh(
-                beakTipGeo,
+                beakTipGeometry,
                 blackMaterial
             );
 
@@ -308,16 +390,17 @@
             0
         );
 
-        beakTip.rotation.z = -Math.PI / 2;
+        beakTip.rotation.z =
+            -Math.PI / 2;
 
         flamingo.add(beakTip);
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // LEGS
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const legGeo =
+        const legGeometry =
             new THREE.CylinderGeometry(
                 0.055,
                 0.055,
@@ -328,7 +411,7 @@
 
         const leftLeg =
             new THREE.Mesh(
-                legGeo,
+                legGeometry,
                 legMaterial
             );
 
@@ -343,24 +426,24 @@
 
         const rightLeg =
             new THREE.Mesh(
-                legGeo,
+                legGeometry,
                 legMaterial
             );
 
         rightLeg.position.set(
             0.35,
             -1.45,
-            -0.2
+            -0.20
         );
 
         flamingo.add(rightLeg);
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // FEET
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const footGeo =
+        const footGeometry =
             new THREE.BoxGeometry(
                 0.5,
                 0.08,
@@ -370,14 +453,14 @@
 
         const leftFoot =
             new THREE.Mesh(
-                footGeo,
+                footGeometry,
                 legMaterial
             );
 
         leftFoot.position.set(
             -0.45,
             -2.55,
-            0.3
+            0.30
         );
 
         flamingo.add(leftFoot);
@@ -385,7 +468,7 @@
 
         const rightFoot =
             new THREE.Mesh(
-                footGeo,
+                footGeometry,
                 legMaterial
             );
 
@@ -398,11 +481,11 @@
         flamingo.add(rightFoot);
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // WING
-        // ------------------------------------------------------------
+        // ============================================================
 
-        const wingGeo =
+        const wingGeometry =
             new THREE.SphereGeometry(
                 0.8,
                 24,
@@ -411,7 +494,7 @@
 
         const wing =
             new THREE.Mesh(
-                wingGeo,
+                wingGeometry,
                 darkPinkMaterial
             );
 
@@ -427,22 +510,35 @@
             0.7
         );
 
-        wing.rotation.z = -0.25;
+        wing.rotation.z =
+            -0.25;
 
         flamingo.add(wing);
 
 
-        // ------------------------------------------------------------
-        // CONTROLS
-        // ------------------------------------------------------------
+        // ============================================================
+        // CENTER MODEL
+        // ============================================================
+
+        flamingo.position.set(
+            0,
+            0.5,
+            0
+        );
+
+
+        // ============================================================
+        // ORBIT CONTROLS
+        // ============================================================
 
         const controls =
-            new THREE.OrbitControls(
+            new OrbitControls(
                 camera,
                 renderer.domElement
             );
 
         controls.enableDamping = true;
+
         controls.dampingFactor = 0.05;
 
         controls.target.set(
@@ -454,13 +550,15 @@
         controls.update();
 
 
-        // ------------------------------------------------------------
-        // ANIMATION LOOP
-        // ------------------------------------------------------------
+        // ============================================================
+        // ANIMATION
+        // ============================================================
 
         function animate() {
 
-            requestAnimationFrame(animate);
+            requestAnimationFrame(
+                animate
+            );
 
             controls.update();
 
@@ -473,9 +571,9 @@
         animate();
 
 
-        // ------------------------------------------------------------
-        // WINDOW RESIZE
-        // ------------------------------------------------------------
+        // ============================================================
+        // RESIZE
+        // ============================================================
 
         window.addEventListener(
             "resize",
@@ -495,9 +593,9 @@
         );
 
 
-        // ------------------------------------------------------------
+        // ============================================================
         // GLTF EXPORT
-        // ------------------------------------------------------------
+        // ============================================================
 
         document
             .getElementById("export-btn")
@@ -506,7 +604,8 @@
                 () => {
 
                     const exporter =
-                        new THREE.GLTFExporter();
+                        new GLTFExporter();
+
 
                     exporter.parse(
                         flamingo,
@@ -520,6 +619,7 @@
                                     2
                                 );
 
+
                             const blob =
                                 new Blob(
                                     [output],
@@ -529,10 +629,12 @@
                                     }
                                 );
 
+
                             const url =
                                 URL.createObjectURL(
                                     blob
                                 );
+
 
                             const link =
                                 document.createElement(
@@ -540,8 +642,10 @@
                                 );
 
                             link.href = url;
+
                             link.download =
                                 "flamingo.gltf";
+
 
                             document.body.appendChild(
                                 link
@@ -552,6 +656,7 @@
                             document.body.removeChild(
                                 link
                             );
+
 
                             URL.revokeObjectURL(
                                 url
