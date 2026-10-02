@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Three.js Flamingo Exporter</title>
+</head>
+<body>
+    <h1>Generating Flamingo GLTF...</h1>
+    
+    <script type="module">
+        // Load Three.js and Exporter directly via browser URLs
+        import * as THREE from 'https://unpkg.com';
+        import { GLTFExporter } from 'https://unpkg.com';
+
+        const scene = new THREE.Scene();
+
+        // Build the flamingo shapes
+        const pinkMaterial = new THREE.MeshStandardMaterial({ color: 0xff8da1, roughness: 0.6 });
+        const orangeMaterial = new THREE.MeshStandardMaterial({ color: 0xffa500 });
+        const legMaterial = new THREE.MeshStandardMaterial({ color: 0xffb6c1 });
+
+        const bodyGeo = new THREE.SphereGeometry(1, 16, 16);
+        const body = new THREE.Mesh(bodyGeo, pinkMaterial);
+        body.scale.set(1.5, 1, 1);
+        scene.add(body);
+
+        const neckGeo = new THREE.CylinderGeometry(0.15, 0.2, 1.5, 8);
+        const neck = new THREE.Mesh(neckGeo, pinkMaterial);
+        neck.position.set(1.2, 0.8, 0);
+        neck.rotation.z = -0.3;
+        scene.add(neck);
+
+        const headGeo = new THREE.SphereGeometry(0.3, 12, 12);
+        const head = new THREE.Mesh(headGeo, pinkMaterial);
+        head.position.set(1.4, 1.6, 0);
+        scene.add(head);
+
+        const beakGeo = new THREE.ConeGeometry(0.1, 0.4, 8);
+        const beak = new THREE.Mesh(beakGeo, orangeMaterial);
+        beak.position.set(1.6, 1.5, 0);
+        beak.rotation.z = -1.2;
+        scene.add(beak);
+
+        const legGeo = new THREE.CylinderGeometry(0.05, 0.05, 2, 8);
+        const leftLeg = new THREE.Mesh(legGeo, legMaterial);
+        leftLeg.position.set(0, -1.8, 0.2);
+        scene.add(leftLeg);
+
+        // Export and automatically download
+        const exporter = new GLTFExporter();
+        exporter.parse(scene, function (gltf) {
+            const output = JSON.stringify(gltf, null, 2);
+            const blob = new Blob([output], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'flamingo.gltf';
+            link.click();
+            
+            document.querySelector('h1').innerText = "Flamingo GLTF Downloaded Successfully!";
+        });
+    </script>
+</body>
+</html>
