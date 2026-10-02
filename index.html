@@ -17,27 +17,24 @@
             top: 20px;
             left: 20px;
             z-index: 10;
-            background: rgba(0,0,0,0.7);
-            padding: 15px;
+            background: rgba(0,0,0,0.85);
+            padding: 20px;
             border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         button {
             background: #ff8da1;
             border: none;
             color: black;
-            padding: 10px 15px;
+            padding: 12px 20px;
             font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
             margin-top: 10px;
+            width: 100%;
         }
         button:hover {
             background: #ffb6c1;
-        }
-        canvas {
-            display: block;
-            width: 100vw;
-            height: 100vh;
         }
     </style>
 </head>
@@ -45,27 +42,29 @@
 
     <div id="ui-container">
         <h2>Flamingo Generator</h2>
-        <p>Click below to download the GLTF mesh file.</p>
+        <p>Left-click + Drag to rotate view</p>
         <button id="export-btn">Download .GLTF Model</button>
     </div>
 
-    <script type="module">
-        import * as THREE from 'https://unpkg.com';
-        import { GLTFExporter } from 'https://unpkg.com';
+    <!-- 1. Load standalone, production-ready Three.js ecosystem bundles via standard scripts -->
+    <script src="https://cloudflare.com"></script>
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
 
-        // 1. Create the Scene
+    <script>
+        // 2. Initialize the standard canvas elements
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x1a1a1a);
 
-        // 2. Add Lighting (So you can see the shapes and dimensions)
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        // 3. Add global environment lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
         dirLight.position.set(5, 10, 7);
         scene.add(dirLight);
 
-        // 3. Build the Flamingo
+        // 4. Build structural flamingo nodes
         const pinkMaterial = new THREE.MeshStandardMaterial({ color: 0xff8da1, roughness: 0.6 });
         const orangeMaterial = new THREE.MeshStandardMaterial({ color: 0xffa500 });
         const legMaterial = new THREE.MeshStandardMaterial({ color: 0xffb6c1 });
@@ -97,33 +96,37 @@
         leftLeg.position.set(0, -1.8, 0.2);
         scene.add(leftLeg);
 
-        // 4. Set Up Real-Time Canvas Renderer & Camera
+        // 5. Establish camera perspective view matrixes
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 2, 6);
-        camera.lookAt(0, 0, 0);
+        camera.position.set(3, 2, 6);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // 5. Animation loop (Makes the flamingo slowly rotate)
+        // 6. Hook up the interactive mouse controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        // 7. Core execution loop
         function animate() {
             requestAnimationFrame(animate);
-            scene.rotation.y += 0.01; 
+            controls.update();
             renderer.render(scene, camera);
         }
         animate();
 
-        // 6. Handle Window Resizing
+        // Window resize adaptation
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // 7. Safe Export Trigger (Activated via explicit user click gesture)
+        // 8. Handle explicit click file generation
         document.getElementById('export-btn').addEventListener('click', () => {
-            const exporter = new GLTFExporter();
+            const exporter = new THREE.GLTFExporter(); // Standard object scope instantiation
             exporter.parse(scene, function (gltf) {
                 const output = JSON.stringify(gltf, null, 2);
                 const blob = new Blob([output], { type: 'application/json' });
