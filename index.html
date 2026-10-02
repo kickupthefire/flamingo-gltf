@@ -3,18 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <title>Three.js Flamingo Exporter</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            font-family: sans-serif;
+            color: white;
+        }
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        button {
+            background: #ff8da1;
+            border: none;
+            color: black;
+            padding: 10px 15px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #ffb6c1;
+        }
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
 </head>
 <body>
-    <h1>Generating Flamingo GLTF...</h1>
-    
+
+    <div id="ui-container">
+        <h2>Flamingo Generator</h2>
+        <p>Click below to download the GLTF mesh file.</p>
+        <button id="export-btn">Download .GLTF Model</button>
+    </div>
+
     <script type="module">
-        // Load Three.js and Exporter directly via browser URLs
         import * as THREE from 'https://unpkg.com';
         import { GLTFExporter } from 'https://unpkg.com';
 
+        // 1. Create the Scene
         const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
 
-        // Build the flamingo shapes
+        // 2. Add Lighting (So you can see the shapes and dimensions)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(5, 10, 7);
+        scene.add(dirLight);
+
+        // 3. Build the Flamingo
         const pinkMaterial = new THREE.MeshStandardMaterial({ color: 0xff8da1, roughness: 0.6 });
         const orangeMaterial = new THREE.MeshStandardMaterial({ color: 0xffa500 });
         const legMaterial = new THREE.MeshStandardMaterial({ color: 0xffb6c1 });
@@ -46,17 +97,42 @@
         leftLeg.position.set(0, -1.8, 0.2);
         scene.add(leftLeg);
 
-        // Export and automatically download
-        const exporter = new GLTFExporter();
-        exporter.parse(scene, function (gltf) {
-            const output = JSON.stringify(gltf, null, 2);
-            const blob = new Blob([output], { type: 'application/json' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'flamingo.gltf';
-            link.click();
-            
-            document.querySelector('h1').innerText = "Flamingo GLTF Downloaded Successfully!";
+        // 4. Set Up Real-Time Canvas Renderer & Camera
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 2, 6);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // 5. Animation loop (Makes the flamingo slowly rotate)
+        function animate() {
+            requestAnimationFrame(animate);
+            scene.rotation.y += 0.01; 
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 6. Handle Window Resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 7. Safe Export Trigger (Activated via explicit user click gesture)
+        document.getElementById('export-btn').addEventListener('click', () => {
+            const exporter = new GLTFExporter();
+            exporter.parse(scene, function (gltf) {
+                const output = JSON.stringify(gltf, null, 2);
+                const blob = new Blob([output], { type: 'application/json' });
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'flamingo.gltf';
+                link.click();
+            });
         });
     </script>
 </body>
